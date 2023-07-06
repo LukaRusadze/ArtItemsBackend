@@ -1,10 +1,10 @@
 ﻿using System;
+using System.IdentityModel.Tokens.Jwt;
+using ArtItems.Data;
+using ArtItems.Models;
+using ArtItems.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ArtItems.Models;
-using ArtItems.Data;
-using ArtItems.Services;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace ArtItems.Controllers;
 
@@ -16,42 +16,43 @@ public class UserRegister
 
 public interface IRegisterResponse
 {
-    public string hashedPassword { get; set; }
+    public string HashedPassword { get; set; }
 }
 
 
 [ApiController]
+[Route("[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly PasswordHasher<string> hasher = new();
+    private readonly PasswordHasher<string> _hasher = new();
     private readonly IJWTService _jwtService;
+    private readonly DataContext _db;
 
-    public UserController(IJWTService jwtService)
+    public UserController(IJWTService jwtService, DataContext db)
     {
         _jwtService = jwtService;
+        _db = db;
     }
 
     [HttpPost]
-    [Route("[controller]/register")]
+    [Route("register")]
     public async Task<IActionResult> Register(UserRegister newUser)
     {
-        using var db = new DataContext();
-        var hashedPassword = hasher.HashPassword(newUser.Email, newUser.Password);
+        var hashedPassword = _hasher.HashPassword(newUser.Email, newUser.Password);
         var generatedUser = new User() { Email = newUser.Email, Password = hashedPassword };
-        var added = await db.AddAsync(generatedUser);
-        await db.SaveChangesAsync();
+        var added = await _db.AddAsync(generatedUser);
+        await _db.SaveChangesAsync();
         return Ok(added.Entity);
     }
 
     [HttpPost]
-    [Route("[controller]/login")]
+    [Route("login")]
     public IActionResult Login(UserRegister user)
     {
-        using var db = new DataContext();
         try
         {
-            var registeredUser = db.Users.First((item) => item.Email == user.Email);
-            var result = hasher.VerifyHashedPassword(user.Email, registeredUser.Password, user.Password);
+            var registeredUser = _db.Users.First((item) => item.Email == user.Email);
+            var result = _hasher.VerifyHashedPassword(user.Email, registeredUser.Password, user.Password);
 
             if (result != PasswordVerificationResult.Success) return NotFound();
 

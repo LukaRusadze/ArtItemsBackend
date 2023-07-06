@@ -1,6 +1,6 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore;
 using ArtItems.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArtItems.Data;
 
@@ -10,7 +10,7 @@ public class DataContext : DbContext
 
     public string DbPath { get; }
 
-    public DataContext()
+    public DataContext(DbContextOptions<DataContext> options) : base(options)
     {
         var folder = Environment.SpecialFolder.LocalApplicationData;
         var path = Environment.GetFolderPath(folder);

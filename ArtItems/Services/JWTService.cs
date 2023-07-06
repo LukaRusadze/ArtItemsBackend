@@ -2,9 +2,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using ArtItems.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ArtItems.Services;
 
@@ -15,12 +16,12 @@ public interface IJWTService
 
 public class JWTService : IJWTService
 {
-    private string _secret = "";
-    private int _expirationInMinutes;
+    private readonly string _secret;
+    private readonly int _expirationInMinutes;
 
-    public JWTService(IConfiguration config)
+    public JWTService(IOptions<Config> config)
     {
-        var secretKey = config.GetSection("jwt").GetValue<string>("secret");
+        var secretKey = config.Value.Secret;
 
         if (secretKey == null)
         {
@@ -28,7 +29,7 @@ public class JWTService : IJWTService
         }
 
         _secret = secretKey;
-        _expirationInMinutes = config.GetSection("jwt").GetValue<int>("expirationInMinutes");
+        _expirationInMinutes = config.Value.ExpirationInMinutes;
     }
 
     public string GenerateSecurityToken(User user)

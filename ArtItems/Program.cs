@@ -1,4 +1,7 @@
-﻿using ArtItems.Services;
+﻿using ArtItems.Data;
+using ArtItems.Models;
+using ArtItems.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -7,8 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IJWTService, JWTService>();
-
-builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+builder.Services.AddDbContext<DataContext>();
+builder.Services.Configure<Config>(builder.Configuration.GetSection("JWT"));
 
 var app = builder.Build();
 
